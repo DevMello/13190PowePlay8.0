@@ -17,7 +17,32 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
  */
 @TeleOp
 public class DevMelloGodOpMode extends LinearOpMode {
+    /*
+     * The Clamp Swervo
+     * @return Nothing
+     * @code clamp.setPosition(x);
+     */
+    protected Servo clamp;
+    /*
+     * The Clamp State
+     * Toggles between true or false
+     * True = Clamp is closed
+     * False = Clamp is open
+     */
+    protected boolean clampState = false;
+    //create objects properties
+    /*
+     * The ENUM for slide direction
+     * @param UP
+     * @param DOWN
+     */
+    enum DIRECTION {
+        UP,
+        DOWN
+    }
 
+    //the DCMotor used for the slides
+    protected DcMotor slideMotor;
     /*
      * DC Motors
      */
@@ -31,21 +56,8 @@ public class DevMelloGodOpMode extends LinearOpMode {
      */
     protected BNO055IMU imu;
     /*
-     * The Slide Motor
-     */
-    protected DcMotor slideMotor;
-    /*
      * The Slide Class
      */
-    Slides slide = new Slides(slideMotor);
-    /*
-     * The Clamp
-     */
-    protected Servo clamp;
-    /*
-     * The Clamp Class
-     */
-    Clamp clampServo = new Clamp(clamp);
     @Override
     public void runOpMode() throws InterruptedException {
         // Declare our motors
@@ -68,12 +80,10 @@ public class DevMelloGodOpMode extends LinearOpMode {
         }
         //declare the slides motor
         slideMotor = hardwareMap.dcMotor.get("slideMotor");
-        //set the slides motor to run using the given motor
-        slide.setSlideMotor(slideMotor);
+
         //declare the clamp servo
         clamp = hardwareMap.servo.get("clamp");
-        //set the clamp servo to run using the given servo
-        clampServo.setClamp(clamp);
+
 
         // Wait for the game to start (driver presses PLAY)
 
@@ -101,18 +111,42 @@ public class DevMelloGodOpMode extends LinearOpMode {
             motorBackRight.setPower(backRightPower);
             //if driver clicks a on gamepad1, toggle the clampState
             if (gamepad1.a) {
-                clampServo.setClampState();
+                setClampState();
             }
             //if driver clicks up on the dpad, move the slides up
             if (gamepad1.dpad_up) {
-                slide.move(Slides.DIRECTION.UP);
+                slideMove(Slides.DIRECTION.UP);
             }
             //if driver clicks down on the dpad, move the slides down
             if (gamepad1.dpad_down) {
-                slide.move(Slides.DIRECTION.DOWN);
+                slideMove(Slides.DIRECTION.DOWN);
             }
 
 
+        }
+    }
+    protected int getSlidePos() {
+        return slideMotor.getCurrentPosition();
+    }
+
+    /**
+     * moves the slide to a targeted position
+     *
+     * @param direction the direction to move the slide
+     */
+    protected void slideMove(Slides.DIRECTION direction) {
+        if (direction == Slides.DIRECTION.UP) {
+            slideMotor.setTargetPosition((int) (slideMotor.getCurrentPosition() + 20));
+        } else if (direction == Slides.DIRECTION.DOWN) {
+            slideMotor.setTargetPosition((int) (slideMotor.getCurrentPosition() - 20));
+        }
+    }
+    public void setClampState() {
+        if (clampState) {
+            //open clamp
+            clamp.setPosition(0);
+        } else {
+            clamp.setPosition(1);
         }
     }
 }
